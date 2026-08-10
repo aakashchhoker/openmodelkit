@@ -1,115 +1,214 @@
 # OpenModelKit
 
-Minimal **JS SDK + CLI** to list open models and chat with a model name + prompt.
+[![npm version](https://img.shields.io/npm/v/openmodelkit.svg)](https://www.npmjs.com/package/openmodelkit)
+[![Node.js](https://img.shields.io/node/v/openmodelkit.svg)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-Point it at a compatible HTTP API (see routes below). Zero runtime dependencies. Node.js **18+**.
+List open models, filter them, and chat — with a model name and a prompt.
 
-```text
-Your app / CLI  →  openmodelkit  →  API  →  Ollama / NVIDIA
-```
-
-## Install
+Zero runtime dependencies. Works with **Ollama**, **NVIDIA** and many more. Includes a small **JS SDK** and **CLI**.
 
 ```bash
 npm install openmodelkit
 ```
 
-CLI without install:
+Requires **Node.js 18+**.
 
-```bash
-npx openmodelkit models --free
-```
+---
 
-## SDK
+## Quick start
+
+### 1. List free models
 
 ```js
-import { OpenModelKit, chat, listModels } from 'openmodelkit';
+import { listModels } from 'openmodelkit';
 
-// One-liner
-const reply = await chat({ model: 'gemma4', prompt: 'hi' });
-
-// Client (reuse config)
-const kit = new OpenModelKit({
-  baseUrl: 'http://localhost:3000',
-  apiKey: process.env.OLLAMA_API_KEY,
+const { models } = await listModels({
   provider: 'ollama',
+  free: true,
 });
 
-const models = await kit.listModels({ free: true });
-const result = await kit.chat({ model: 'gemma4', prompt: 'hi' });
+for (const model of models || []) {
+  console.log(model.id || model.name);
+}
 ```
 
-Provider prefix (auto-selects route):
+### 2. Chat with a model
+
+```js
+import { chat } from 'openmodelkit';
+
+const reply = await chat({
+  provider: 'ollama',
+  model: 'gemma4',
+  prompt: 'Explain gravity in simple words',
+});
+
+console.log(reply);
+```
+
+### 3. Full flow (list → chat)
+
+```js
+import { listModels, chat } from 'openmodelkit';
+
+const { models } = await listModels({ provider: 'ollama', free: true });
+const model = models[0].id || models[0].name;
+
+const reply = await chat({
+  provider: 'ollama',
+  model,
+  prompt: 'Say hello in one sentence',
+});
+
+console.log(`Model: ${model}`);
+console.log(reply);
+```
+
+---
+
+## Providers
+
+| Provider | Usage |
+| --- | --- |
+| Ollama | `provider: 'ollama'` |
+| NVIDIA | `provider: 'nvidia'` |
+
+---
+
+## Model filters
+
+### Ollama
+
+| Filter | Values | Description |
+| --- | --- | --- |
+| `free` | `true` | Free models only |
+| `premium` | `true` | Premium models only |
+| `category` | `all` · `free` · `cloud` · `embedding` · `vision` · `tools` · `thinking` | Filter by model type |
+| `order` | `popular` · `newest` | Sort order |
+| `page` | number | Page number |
+| `limit` | number | Results per page |
+
+```js
+import { listModels } from 'openmodelkit';
+
+await listModels({ provider: 'ollama', free: true });
+await listModels({ provider: 'ollama', premium: true });
+await listModels({ provider: 'ollama', category: 'vision' });
+await listModels({ provider: 'ollama', category: 'embedding' });
+await listModels({ provider: 'ollama', category: 'tools' });
+await listModels({ provider: 'ollama', category: 'thinking' });
+await listModels({ provider: 'ollama', category: 'cloud' });
+await listModels({
+  provider: 'ollama',
+  category: 'all',
+  order: 'newest',
+  page: 1,
+  limit: 20,
+});
+```
+
+### NVIDIA
+
+| Filter | Values | Description |
+| --- | --- | --- |
+| `free` | `true` | Free endpoint models only |
+| `premium` | `true` | Partner / premium models only |
+| `page` | number | Page number |
+| `limit` | number | Results per page |
+
+```js
+import { listModels } from 'openmodelkit';
+
+await listModels({ provider: 'nvidia', free: true });
+await listModels({ provider: 'nvidia', premium: true });
+await listModels({ provider: 'nvidia', page: 1, limit: 50 });
+```
+
+---
+
+## Authentication
+
+Pass your provider API key when chatting (recommended for production):
 
 ```js
 await chat({
-  model: 'nvidia:meta/llama-3.1-8b-instruct',
+  provider: 'ollama',
+  model: 'gemma4',
   prompt: 'hi',
-  nvidiaApiKey: process.env.NVIDIA_API_KEY,
+  apiKey: process.env.OLLAMA_API_KEY,
 });
 ```
 
-TypeScript types ship with the package (`index.d.ts`).
+```js
+await chat({
+  provider: 'nvidia',
+  model: 'meta/llama-3.1-8b-instruct',
+  prompt: 'hi',
+  apiKey: process.env.NVIDIA_API_KEY,
+});
+```
 
-### Errors
+Or set environment variables:
 
-Failed calls throw `OpenModelKitError` with:
+```bash
+export OLLAMA_API_KEY=your_ollama_key
+export NVIDIA_API_KEY=your_nvidia_key
+```
 
-| Field | Meaning |
-| --- | --- |
-| `message` | Human-readable reason |
-| `status` | HTTP status when available |
-| `code` | `INVALID_INPUT`, `TIMEOUT`, `NETWORK_ERROR`, `HTTP_401`, … |
-| `body` | Parsed API error body when present |
+Never commit API keys to source control.
+
+---
 
 ## CLI
 
 ```bash
+# List models
 npx openmodelkit models --provider ollama --free
-npx openmodelkit chat -m gemma4 "what is 2+2"
-npx openmodelkit chat --provider nvidia -m meta/llama-3.1-8b-instruct "hi"
-npx openmodelkit providers --json
-npx openmodelkit version
+npx openmodelkit models --provider ollama --premium
+npx openmodelkit models --provider nvidia --free
+
+# Chat
+npx openmodelkit chat --provider ollama -m gemma4 "Say hello"
+npx openmodelkit chat --provider nvidia -m meta/llama-3.1-8b-instruct "Say hello"
+
+# Help
+npx openmodelkit help
 ```
 
-Flags: `--provider`, `-m` / `--model`, `--free`, `--premium`, `--page`, `--limit`, `--base-url`, `--json`.
+---
 
-## Environment
+## API overview
 
-| Variable | Purpose |
+| Export | Purpose |
 | --- | --- |
-| `OPENMODELKIT_BASE_URL` | API base (default `http://localhost:3000`) |
-| `OPENMODELKIT_PROVIDER` | Default provider (`ollama` \| `nvidia`) |
-| `OPENMODELKIT_TIMEOUT_MS` | Request timeout (default `120000`) |
-| `OLLAMA_API_KEY` | Sent as `X-API-Key` |
-| `NVIDIA_API_KEY` | Sent as `X-NVIDIA-API-Key` |
+| `listModels(options)` | List models with provider filters |
+| `chat(options)` | Send a prompt and get a response |
+| `listProviders(options)` | List available providers |
+| `OpenModelKit` | Reusable client for repeated calls |
+| `OpenModelKitError` | Structured error (`message`, `code`, `status`) |
 
-## HTTP mapping
+TypeScript types are included.
 
-| Method | Path |
-| --- | --- |
-| `GET` | `/{provider}/models` |
-| `POST` | `/{provider}/chat` `{ model, prompt, ... }` |
-| `GET` | `/providers` |
+---
 
-## Backend requirement
+## Requirements
 
-This package is a **client**. Set `OPENMODELKIT_BASE_URL` to a server that implements the routes above.
+- Node.js **18+** (native `fetch`)
+- A valid provider API key when the upstream service requires one
 
-## Publish (maintainers)
-
-```bash
-npm test
-npm publish --access public
-```
-
-`prepublishOnly` runs the test suite before publish.
+---
 
 ## Author
 
-Built by **[Aakash Chhoker](https://github.com/aakashchhoker)**.
+Built and maintained by **[Aakash Chhoker](https://github.com/aakashchhoker)**.
+
+- GitHub: [github.com/aakashchhoker](https://github.com/aakashchhoker)
+- Package: [npmjs.com/package/openmodelkit](https://www.npmjs.com/package/openmodelkit)
+- Repository: [github.com/aakashchhoker/openmodelkit](https://github.com/aakashchhoker/openmodelkit)
+
+---
 
 ## License
 
-MIT
-# openmodelkit
+[MIT](./LICENSE)

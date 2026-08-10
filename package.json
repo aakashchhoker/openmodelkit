@@ -1,6 +1,6 @@
 {
   "name": "openmodelkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Minimal JS SDK + CLI to list open models and chat by model name + prompt.",
   "type": "module",
   "main": "./src/index.js",
@@ -13,7 +13,7 @@
     }
   },
   "bin": {
-    "openmodelkit": "./bin/openmodelkit.js"
+    "openmodelkit": "bin/openmodelkit.js"
   },
   "files": [
     "src",
@@ -51,12 +51,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aakashchhoker/OpenModelKit.git"
+    "url": "git+https://github.com/aakashchhoker/openmodelkit.git"
   },
   "bugs": {
-    "url": "https://github.com/aakashchhoker/OpenModelKit/issues"
+    "url": "https://github.com/aakashchhoker/openmodelkit/issues"
   },
-  "homepage": "https://github.com/aakashchhoker/OpenModelKit#readme",
+  "homepage": "https://github.com/aakashchhoker/openmodelkit#readme",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {}
