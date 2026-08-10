@@ -1,0 +1,63 @@
+{
+  "name": "openmodelkit",
+  "version": "1.0.0",
+  "description": "Minimal JS SDK + CLI to list open models and chat by model name + prompt.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  },
+  "bin": {
+    "openmodelkit": "./bin/openmodelkit.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "index.d.ts",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test tests/**/*.test.js",
+    "prepublishOnly": "npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "openmodelkit",
+    "ollama",
+    "nvidia",
+    "llm",
+    "chat",
+    "cli",
+    "sdk"
+  ],
+  "author": {
+    "name": "Aakash Chhoker",
+    "url": "https://github.com/aakashchhoker"
+  },
+  "contributors": [
+    {
+      "name": "Aakash Chhoker",
+      "url": "https://github.com/aakashchhoker"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aakashchhoker/OpenModelKit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aakashchhoker/OpenModelKit/issues"
+  },
+  "homepage": "https://github.com/aakashchhoker/OpenModelKit#readme",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
