@@ -1,26 +1,37 @@
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { AIMessage, ToolMessage } from '@langchain/core/messages';
+import { AIMessage } from '@langchain/core/messages';
+import { convertToOpenAITool } from '@langchain/core/utils/function_calling';
 import { OpenModelKit } from './client.js';
 
 /**
  * Convert a LangChain tool definition to OpenAI function-calling format.
  * Accepts LangChain StructuredTool, plain objects, or OpenAI-format tools.
  */
-function convertTool(t) {
+export function convertTool(t) {
+  if (!t) return t;
   if (t.type === 'function' && t.function) return t;
 
-  const schema = t.schema
-    ? typeof t.schema.jsonSchema === 'function'
-      ? t.schema.jsonSchema()
-      : t.schema
-    : {};
+  try {
+    const converted = convertToOpenAITool(t);
+    if (converted?.type === 'function' && converted.function) return converted;
+  } catch {
+    // fall through to a conservative OpenAI-shaped tool
+  }
+
+  const schema = t.schema;
+  const parameters =
+    schema && (schema.type === 'object' || schema.properties)
+      ? schema
+      : typeof schema?.jsonSchema === 'function'
+        ? schema.jsonSchema()
+        : { type: 'object', properties: {} };
 
   return {
     type: 'function',
     function: {
       name: t.name,
       description: t.description || '',
-      parameters: schema,
+      parameters,
     },
   };
 }
@@ -114,6 +125,7 @@ export class ChatOpenModelKit extends BaseChatModel {
     super(fields);
     this.provider = fields.provider || 'ollama';
     this.modelName = fields.model || fields.modelName || '';
+    this.fetchFn = fields.fetch;
     this.omk = new OpenModelKit({
       baseUrl: fields.baseUrl,
       provider: this.provider,
@@ -130,17 +142,17 @@ export class ChatOpenModelKit extends BaseChatModel {
     return 'openmodelkit';
   }
 
-  bindTools(tools, kwargs) {
+  bindTools(tools) {
     const bound = new ChatOpenModelKit({
       provider: this.provider,
       model: this.modelName,
       baseUrl: this.omk.config.baseUrl,
-      apiKey: this.omk.config.ollamaApiKey || this.omk.config.nvidiaApiKey,
       ollamaApiKey: this.omk.config.ollamaApiKey,
       nvidiaApiKey: this.omk.config.nvidiaApiKey,
       timeoutMs: this.omk.config.timeoutMs,
+      fetch: this.fetchFn,
     });
-    bound._tools = tools.map(convertTool);
+    bound._tools = (tools || []).map(convertTool);
     return bound;
   }
 
