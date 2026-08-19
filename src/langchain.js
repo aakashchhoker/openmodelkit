@@ -147,10 +147,26 @@ export class ChatOpenModelKit extends BaseChatModel {
   async _generate(messages, options, runManager) {
     const formatted = messages.map(formatMessage);
 
+    // OpenModelKit requires a non-empty `prompt`, even when `messages` are provided.
+    // Use the last human/user message as the prompt source.
+    const prompt =
+      formatted
+        .slice()
+        .reverse()
+        .find((m) => m.role === 'user' && String(m.content || '').trim().length)
+        ?.content ||
+      formatted
+        .map((m) => String(m.content || '').trim())
+        .filter(Boolean)
+        .join('\n')
+        .trim() ||
+      ' ';
+
     const chatOpts = {
       provider: this.provider,
       model: this.modelName,
       messages: formatted,
+      prompt,
     };
 
     if (this._tools.length) {
