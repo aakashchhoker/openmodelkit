@@ -6,7 +6,7 @@
 
 List open models, filter them, and chat — with a model name and a prompt.
 
-Zero runtime dependencies. Works with **Ollama**, **NVIDIA** and many more. Includes a small **JS SDK** and **CLI**.
+Zero runtime dependencies. Works with **Ollama**, **NVIDIA** and many more. Includes a small **JS SDK**, **CLI**, and first-class **LangChain** / **LangGraph** support via `ChatOpenModelKit`.
 
 ```bash
 npm install openmodelkit
@@ -160,6 +160,112 @@ Never commit API keys to source control.
 
 ---
 
+## LangChain and LangGraph
+
+OpenModelKit ships `ChatOpenModelKit`, a LangChain `BaseChatModel`. Use it with LangChain tools, `bindTools()`, and LangGraph graphs (agent + tool loops).
+
+`@langchain/core` is an optional peer dependency. Install it when you use this integration. For graphs, also install `@langchain/langgraph`.
+
+```bash
+npm install openmodelkit @langchain/core @langchain/langgraph
+```
+
+### LangChain chat
+
+```js
+import { ChatOpenModelKit } from 'openmodelkit';
+import { HumanMessage } from '@langchain/core/messages';
+
+const llm = new ChatOpenModelKit({
+  provider: 'ollama',
+  model: 'gemma4',
+  apiKey: process.env.OLLAMA_API_KEY,
+});
+
+const reply = await llm.invoke([
+  new HumanMessage('Explain gravity in simple words'),
+]);
+
+console.log(reply.content);
+```
+
+### Tools with LangChain
+
+```js
+import { ChatOpenModelKit } from 'openmodelkit';
+import { tool } from '@langchain/core/tools';
+import { z } from 'zod';
+
+const weather = tool(
+  async ({ city }) => `Weather in ${city}: sunny, 24°C`,
+  {
+    name: 'get_weather',
+    description: 'Get the current weather for a city',
+    schema: z.object({ city: z.string() }),
+  }
+);
+
+const llm = new ChatOpenModelKit({
+  provider: 'ollama',
+  model: 'gemma4',
+}).bindTools([weather]);
+
+const reply = await llm.invoke('What is the weather in Paris?');
+console.log(reply.tool_calls);
+```
+
+### LangGraph agent
+
+`ChatOpenModelKit` works as the model node in a LangGraph `StateGraph`. Bind tools, then use `ToolNode` and `toolsCondition` for the agent loop.
+
+```js
+import { ChatOpenModelKit } from 'openmodelkit';
+import { StateGraph, MessagesAnnotation, START } from '@langchain/langgraph';
+import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { tool } from '@langchain/core/tools';
+import { z } from 'zod';
+
+const weather = tool(
+  async ({ city }) => `Weather in ${city}: sunny, 24°C`,
+  {
+    name: 'get_weather',
+    description: 'Get the current weather for a city',
+    schema: z.object({ city: z.string() }),
+  }
+);
+
+const tools = [weather];
+const llm = new ChatOpenModelKit({
+  provider: 'ollama',
+  model: 'gemma4',
+}).bindTools(tools);
+
+const graph = new StateGraph(MessagesAnnotation)
+  .addNode('agent', async (state) => {
+    const out = await llm.invoke([
+      new SystemMessage('You are a helpful assistant. Use tools when needed.'),
+      ...state.messages,
+    ]);
+    return { messages: [out] };
+  })
+  .addNode('tools', new ToolNode(tools))
+  .addEdge(START, 'agent')
+  .addConditionalEdges('agent', toolsCondition)
+  .addEdge('tools', 'agent')
+  .compile();
+
+const result = await graph.invoke({
+  messages: [new HumanMessage('What is the weather in Paris?')],
+});
+
+console.log(result.messages.at(-1).content);
+```
+
+NVIDIA works the same way — set `provider: 'nvidia'` and `model` to an NVIDIA model id.
+
+---
+
 ## CLI
 
 ```bash
@@ -186,6 +292,7 @@ npx openmodelkit help
 | `chat(options)` | Send a prompt and get a response |
 | `listProviders(options)` | List available providers |
 | `OpenModelKit` | Reusable client for repeated calls |
+| `ChatOpenModelKit` | LangChain `BaseChatModel` for LangChain and LangGraph |
 | `OpenModelKitError` | Structured error (`message`, `code`, `status`) |
 
 TypeScript types are included.
@@ -196,6 +303,7 @@ TypeScript types are included.
 
 - Node.js **18+** (native `fetch`)
 - A valid provider API key when the upstream service requires one
+- Optional: `@langchain/core` (and `@langchain/langgraph`) for LangChain / LangGraph
 
 ---
 
