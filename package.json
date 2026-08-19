@@ -1,6 +1,6 @@
 {
   "name": "openmodelkit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Minimal JS SDK + CLI to list open models and chat by model name + prompt.",
   "type": "module",
   "main": "./src/index.js",
