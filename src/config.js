@@ -62,16 +62,22 @@ export function resolveConfig(opts = {}) {
     ''
   ).trim();
 
-  const ollamaApiKey = String(opts.ollamaApiKey || '').trim() || ollamaFromEnv;
-  const nvidiaApiKey = String(opts.nvidiaApiKey || '').trim() || nvidiaFromEnv;
-
-  // Generic apiKey fills the matching provider when that key is unset.
+  // Generic apiKey maps by shape: nvapi-* -> NVIDIA, anything else -> Ollama.
   const isNvidiaKey = apiKey.startsWith('nvapi-');
+  const mappedGenericOllama = apiKey && !isNvidiaKey ? apiKey : '';
+  const mappedGenericNvidia = isNvidiaKey ? apiKey : '';
+
+  // Precedence: explicit per-provider option > generic apiKey > env default.
+  const ollamaApiKey =
+    String(opts.ollamaApiKey || '').trim() || mappedGenericOllama || ollamaFromEnv;
+  const nvidiaApiKey =
+    String(opts.nvidiaApiKey || '').trim() || mappedGenericNvidia || nvidiaFromEnv;
+
   return {
     baseUrl: normalizeBaseUrl(opts.baseUrl || DEFAULT_BASE_URL),
     provider,
-    ollamaApiKey: ollamaApiKey || (!isNvidiaKey ? apiKey : ''),
-    nvidiaApiKey: nvidiaApiKey || (isNvidiaKey ? apiKey : ''),
+    ollamaApiKey,
+    nvidiaApiKey,
     timeoutMs: toPositiveInt(
       opts.timeoutMs ?? process.env.OPENMODELKIT_TIMEOUT_MS,
       120_000

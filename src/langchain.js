@@ -3,6 +3,8 @@ import { AIMessage } from '@langchain/core/messages';
 import { convertToOpenAITool } from '@langchain/core/utils/function_calling';
 import { OpenModelKit } from './client.js';
 
+const HOSTED_BASE_URL = 'https://open-source-models.onrender.com';
+
 /**
  * Convert a LangChain tool definition to OpenAI function-calling format.
  * Accepts LangChain StructuredTool, plain objects, or OpenAI-format tools.
@@ -123,18 +125,20 @@ export class ChatOpenModelKit extends BaseChatModel {
    */
   constructor(fields = {}) {
     super(fields);
-    this.provider = fields.provider || 'ollama';
     this.modelName = fields.model || fields.modelName || '';
     this.fetchFn = fields.fetch;
+    this.baseUrl = fields.baseUrl || HOSTED_BASE_URL;
     this.omk = new OpenModelKit({
-      baseUrl: fields.baseUrl,
-      provider: this.provider,
+      baseUrl: this.baseUrl,
+      // Let OpenModelKit resolve provider from explicit input or env defaults.
+      provider: fields.provider,
       apiKey: fields.apiKey,
       ollamaApiKey: fields.ollamaApiKey,
       nvidiaApiKey: fields.nvidiaApiKey,
       timeoutMs: fields.timeoutMs,
       fetch: fields.fetch,
     });
+    this.provider = this.omk.config.provider;
     this._tools = [];
   }
 
@@ -146,7 +150,7 @@ export class ChatOpenModelKit extends BaseChatModel {
     const bound = new ChatOpenModelKit({
       provider: this.provider,
       model: this.modelName,
-      baseUrl: this.omk.config.baseUrl,
+      baseUrl: this.baseUrl,
       ollamaApiKey: this.omk.config.ollamaApiKey,
       nvidiaApiKey: this.omk.config.nvidiaApiKey,
       timeoutMs: this.omk.config.timeoutMs,

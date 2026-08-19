@@ -57,6 +57,33 @@ describe('resolveConfig', () => {
     assert.equal(cfg.nvidiaApiKey, 'nvapi-abc');
     assert.equal(cfg.ollamaApiKey, '');
   });
+
+  it('lets user-provided apiKey override env defaults', () => {
+    const prevO = process.env.OLLAMA_API_KEY;
+    const prevN = process.env.NVIDIA_API_KEY;
+    process.env.OLLAMA_API_KEY = 'env-ollama';
+    process.env.NVIDIA_API_KEY = 'nvapi-env';
+    try {
+      const a = resolveConfig({
+        baseUrl: 'http://localhost:3000',
+        provider: 'ollama',
+        apiKey: 'user-ollama',
+      });
+      assert.equal(a.ollamaApiKey, 'user-ollama');
+
+      const b = resolveConfig({
+        baseUrl: 'http://localhost:3000',
+        provider: 'nvidia',
+        apiKey: 'nvapi-user',
+      });
+      assert.equal(b.nvidiaApiKey, 'nvapi-user');
+    } finally {
+      if (prevO === undefined) delete process.env.OLLAMA_API_KEY;
+      else process.env.OLLAMA_API_KEY = prevO;
+      if (prevN === undefined) delete process.env.NVIDIA_API_KEY;
+      else process.env.NVIDIA_API_KEY = prevN;
+    }
+  });
 });
 
 describe('parseArgs', () => {
