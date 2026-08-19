@@ -24,7 +24,7 @@ export interface ListModelsOptions {
 
 export interface ChatOptions {
   model: string;
-  prompt: string;
+  prompt?: string;
   provider?: ProviderId;
   /** Extra fields merged into the chat request body. */
   options?: Record<string, unknown>;
@@ -32,7 +32,8 @@ export interface ChatOptions {
   temperature?: number;
   max_tokens?: number;
   system?: string;
-  messages?: unknown;
+  messages?: Array<{ role: string; content: string; tool_calls?: unknown[]; tool_call_id?: string }>;
+  tools?: Array<{ type: string; function: { name: string; description?: string; parameters?: Record<string, unknown> } }>;
 }
 
 export interface ModelRef {
@@ -90,3 +91,21 @@ export declare function parseModelRef(
 
 export declare const DEFAULT_BASE_URL: string;
 export declare const DEFAULT_PROVIDER: string;
+
+export interface ChatOpenModelKitOptions {
+  provider?: ProviderId;
+  model?: string;
+  modelName?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  ollamaApiKey?: string;
+  nvidiaApiKey?: string;
+  timeoutMs?: number;
+  fetch?: typeof fetch;
+}
+
+export declare class ChatOpenModelKit {
+  constructor(options?: ChatOpenModelKitOptions);
+  bindTools(tools: unknown[], kwargs?: Record<string, unknown>): ChatOpenModelKit;
+  invoke(messages: unknown[], options?: Record<string, unknown>): Promise<unknown>;
+}

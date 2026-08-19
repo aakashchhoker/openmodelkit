@@ -189,7 +189,7 @@ export class OpenModelKit {
         : {}),
     };
 
-    for (const key of ['stream', 'temperature', 'max_tokens', 'system', 'messages']) {
+    for (const key of ['stream', 'temperature', 'max_tokens', 'system', 'messages', 'tools']) {
       if (opts[key] !== undefined && body[key] === undefined) body[key] = opts[key];
     }
 
