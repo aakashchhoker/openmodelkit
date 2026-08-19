@@ -56,7 +56,8 @@ function formatMessage(msg) {
         out.tool_calls = msg.tool_calls.map((tc) => ({
           id: tc.id,
           type: 'function',
-          function: { name: tc.name, arguments: JSON.stringify(tc.args) },
+          // Keep arguments as an object for Ollama/OpenModelKit replay turns.
+          function: { name: tc.name, arguments: tc.args || {} },
         }));
       }
       return out;
