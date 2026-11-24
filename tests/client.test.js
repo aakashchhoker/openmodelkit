@@ -215,12 +215,13 @@ describe('convenience exports', () => {
 
     await chat({
       baseUrl: 'http://x',
+      provider: 'ollama',
       model: 'gemma4',
       prompt: 'hi',
       apiKey: 'k',
       fetch,
     });
-    await listModels({ baseUrl: 'http://x', free: true, fetch });
+    await listModels({ baseUrl: 'http://x', provider: 'ollama', free: true, fetch });
     await listProviders({ baseUrl: 'http://x', fetch });
 
     assert.equal(calls[0].url, 'http://x/ollama/chat');

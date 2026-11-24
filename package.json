@@ -1,7 +1,7 @@
 {
   "name": "openmodelkit",
-  "version": "1.0.8",
-  "description": "Minimal JS SDK + CLI to list open models and chat by model name + prompt.",
+  "version": "1.0.9",
+  "description": "OpenModelKit — JS SDK + CLI for open models (NVIDIA default) via the OpenModelKit API.",
   "type": "module",
   "main": "./src/index.js",
   "types": "./index.d.ts",

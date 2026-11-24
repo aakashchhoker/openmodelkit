@@ -1,17 +1,25 @@
 /** @typedef {'ollama' | 'nvidia' | string} ProviderId */
 
+/** Public HTTPS API (Vercel → Oracle). Override with OPENMODELKIT_BASE_URL. */
 export const DEFAULT_BASE_URL =
   process.env.OPENMODELKIT_BASE_URL?.trim() ||
   process.env.OPEN_SOURCE_MODELS_URL?.trim() ||
-  'https://open-source-models.onrender.com';
+  'https://arix-ten.vercel.app/backend';
 
 export const DEFAULT_PROVIDER = (
   process.env.OPENMODELKIT_PROVIDER ||
   process.env.DEFAULT_PROVIDER ||
-  'ollama'
+  'nvidia'
 )
   .trim()
   .toLowerCase();
+
+/** Default NVIDIA chat model when callers omit -m / model. */
+export const DEFAULT_MODEL = (
+  process.env.OPENMODELKIT_MODEL ||
+  process.env.NVIDIA_MODEL ||
+  'minimaxai/minimax-m3.1-flash'
+).trim();
 
 /**
  * @param {unknown} value
@@ -90,9 +98,11 @@ export function resolveConfig(opts = {}) {
  * @param {string} raw
  * @param {string} [fallbackProvider]
  */
-export function parseModelRef(raw, fallbackProvider = 'ollama') {
+export function parseModelRef(raw, fallbackProvider = DEFAULT_PROVIDER) {
   const value = String(raw || '').trim();
-  const fallback = String(fallbackProvider || 'ollama').trim().toLowerCase() || 'ollama';
+  const fallback =
+    String(fallbackProvider || DEFAULT_PROVIDER).trim().toLowerCase() ||
+    'nvidia';
   if (!value) return { provider: fallback, model: '' };
 
   const colon = value.match(/^([a-z0-9_-]+):(.+)$/i);

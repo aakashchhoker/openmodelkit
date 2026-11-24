@@ -2,6 +2,7 @@
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { OpenModelKit, OpenModelKitError } from './client.js';
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from './config.js';
 
 const { version: VERSION } = createRequire(import.meta.url)('../package.json');
 
@@ -10,14 +11,14 @@ function printHelp() {
 
 Usage:
   openmodelkit models [options]
-  openmodelkit chat -m <model> [options] <prompt...>
+  openmodelkit chat [options] <prompt...>
   openmodelkit providers [options]
   openmodelkit version
   openmodelkit help
 
 Options:
-  --provider <name>   ollama | nvidia (default: OPENMODELKIT_PROVIDER or ollama)
-  -m, --model <id>    Model id (supports nvidia:org/model)
+  --provider <name>   ollama | nvidia (default: ${DEFAULT_PROVIDER})
+  -m, --model <id>    Model id (default: ${DEFAULT_MODEL})
   --free              Free models only
   --premium           Premium models only
   --page <n>          Page number
@@ -28,9 +29,9 @@ Options:
   -V, --version       Version
 
 Examples:
-  openmodelkit models --provider ollama --free
-  openmodelkit chat -m gemma4 "what is 2+2"
-  openmodelkit chat --provider nvidia -m meta/llama-3.1-8b-instruct "hi"
+  openmodelkit models --free
+  openmodelkit chat "what is 2+2"
+  openmodelkit chat --provider ollama -m gemma4 "hi"
 `);
 }
 
@@ -215,11 +216,7 @@ export async function main(argv = process.argv.slice(2)) {
     }
 
     if (command === 'chat') {
-      if (!flags.model) {
-        console.error('chat requires -m/--model');
-        process.exitCode = 1;
-        return;
-      }
+      const model = flags.model || DEFAULT_MODEL;
       const prompt = rest.join(' ').trim();
       if (!prompt) {
         console.error('chat requires a prompt');
@@ -227,7 +224,7 @@ export async function main(argv = process.argv.slice(2)) {
         return;
       }
       printChat(
-        await kit.chat({ model: flags.model, prompt, provider: flags.provider }),
+        await kit.chat({ model, prompt, provider: flags.provider }),
         flags.json
       );
       return;

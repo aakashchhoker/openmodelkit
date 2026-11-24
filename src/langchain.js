@@ -3,7 +3,9 @@ import { AIMessage } from '@langchain/core/messages';
 import { convertToOpenAITool } from '@langchain/core/utils/function_calling';
 import { OpenModelKit } from './client.js';
 
-const HOSTED_BASE_URL = 'https://open-source-models.onrender.com';
+import { DEFAULT_BASE_URL, DEFAULT_MODEL } from './config.js';
+
+const HOSTED_BASE_URL = DEFAULT_BASE_URL;
 
 /**
  * Convert a LangChain tool definition to OpenAI function-calling format.
@@ -126,7 +128,7 @@ export class ChatOpenModelKit extends BaseChatModel {
    */
   constructor(fields = {}) {
     super(fields);
-    this.modelName = fields.model || fields.modelName || '';
+    this.modelName = fields.model || fields.modelName || DEFAULT_MODEL;
     this.fetchFn = fields.fetch;
     this.baseUrl = fields.baseUrl || HOSTED_BASE_URL;
     this.omk = new OpenModelKit({

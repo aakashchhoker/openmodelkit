@@ -91,6 +91,7 @@ export declare function parseModelRef(
 
 export declare const DEFAULT_BASE_URL: string;
 export declare const DEFAULT_PROVIDER: string;
+export declare const DEFAULT_MODEL: string;
 
 export interface ChatOpenModelKitOptions {
   provider?: ProviderId;

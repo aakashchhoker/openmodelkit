@@ -24,7 +24,7 @@ Requires **Node.js 18+**.
 import { listModels } from 'openmodelkit';
 
 const { models } = await listModels({
-  provider: 'ollama',
+  provider: 'nvidia',
   free: true,
 });
 
@@ -39,7 +39,7 @@ for (const model of models || []) {
 import { chat } from 'openmodelkit';
 
 const reply = await chat({
-  provider: 'ollama',
+  provider: 'nvidia',
   model: 'gemma4',
   prompt: 'Explain gravity in simple words',
 });
@@ -56,7 +56,7 @@ const { models } = await listModels({ provider: 'ollama', free: true });
 const model = models[0].id || models[0].name;
 
 const reply = await chat({
-  provider: 'ollama',
+  provider: 'nvidia',
   model,
   prompt: 'Say hello in one sentence',
 });
@@ -100,7 +100,7 @@ await listModels({ provider: 'ollama', category: 'tools' });
 await listModels({ provider: 'ollama', category: 'thinking' });
 await listModels({ provider: 'ollama', category: 'cloud' });
 await listModels({
-  provider: 'ollama',
+  provider: 'nvidia',
   category: 'all',
   order: 'newest',
   page: 1,
@@ -133,7 +133,7 @@ Pass your provider API key when chatting (recommended for production):
 
 ```js
 await chat({
-  provider: 'ollama',
+  provider: 'nvidia',
   model: 'gemma4',
   prompt: 'hi',
   apiKey: process.env.OLLAMA_API_KEY,
@@ -143,7 +143,7 @@ await chat({
 ```js
 await chat({
   provider: 'nvidia',
-  model: 'meta/llama-3.1-8b-instruct',
+  model: 'minimaxai/minimax-m3.1-flash',
   prompt: 'hi',
   apiKey: process.env.NVIDIA_API_KEY,
 });
@@ -177,7 +177,7 @@ import { ChatOpenModelKit } from 'openmodelkit';
 import { HumanMessage } from '@langchain/core/messages';
 
 const llm = new ChatOpenModelKit({
-  provider: 'ollama',
+  provider: 'nvidia',
   model: 'gemma4',
   apiKey: process.env.OLLAMA_API_KEY,
 });
@@ -206,7 +206,7 @@ const weather = tool(
 );
 
 const llm = new ChatOpenModelKit({
-  provider: 'ollama',
+  provider: 'nvidia',
   model: 'gemma4',
 }).bindTools([weather]);
 
@@ -237,7 +237,7 @@ const weather = tool(
 
 const tools = [weather];
 const llm = new ChatOpenModelKit({
-  provider: 'ollama',
+  provider: 'nvidia',
   model: 'gemma4',
 }).bindTools(tools);
 
@@ -275,8 +275,8 @@ npx openmodelkit models --provider ollama --premium
 npx openmodelkit models --provider nvidia --free
 
 # Chat
+npx openmodelkit chat "Say hello"
 npx openmodelkit chat --provider ollama -m gemma4 "Say hello"
-npx openmodelkit chat --provider nvidia -m meta/llama-3.1-8b-instruct "Say hello"
 
 # Help
 npx openmodelkit help
